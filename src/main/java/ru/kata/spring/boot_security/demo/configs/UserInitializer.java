@@ -43,8 +43,8 @@ public class UserInitializer {
                 userRoles.add(roleUser);
                 user.setRoles(userRoles);
 
-                userService.addUser(admin);
-                userService.addUser(user);
+//                userService.addUser(admin);
+//                userService.addUser(user);
             }
         } catch (Exception e) {
             e.printStackTrace();

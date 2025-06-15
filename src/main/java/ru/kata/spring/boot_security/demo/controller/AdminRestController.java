@@ -11,6 +11,7 @@ import ru.kata.spring.boot_security.demo.service.UserService;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -39,11 +40,21 @@ public class AdminRestController {
     }
 
     @PostMapping
-    public ResponseEntity<User> addUser(@Valid @RequestBody User user, BindingResult bindingResult) {
+    public ResponseEntity<User> addUser(@Valid @RequestBody Map<String, Object> requestData, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
-        userService.addUser(user);
+
+        User user = new User();
+        user.setName((String) requestData.get("name"));
+        user.setEmail((String) requestData.get("email"));
+        user.setAge(Integer.parseInt(requestData.get("age").toString()));
+        user.setPassword((String) requestData.get("password"));
+
+        @SuppressWarnings("unchecked")
+        List<String> roleNames = (List<String>) requestData.get("roleNames");
+
+        userService.addUser(user, roleNames);
         return ResponseEntity.ok(user);
     }
 
@@ -59,13 +70,20 @@ public class AdminRestController {
 
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Long id,
-                                           @Valid @RequestBody User user,
-                                           BindingResult bindingResult,
-                                           @RequestParam(value = "password", required = false) String password,
-                                           @RequestParam(value = "roleNames", required = false) List<String> roleNames) {
+                                           @Valid @RequestBody Map<String, Object> requestData,
+                                           BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
+        User user = new User();
+        user.setName((String) requestData.get("name"));
+        user.setEmail((String) requestData.get("email"));
+        user.setAge(requestData.get("age") != null ? Integer.parseInt(requestData.get("age").toString()) : null);
+        String password = (String) requestData.get("password");
+
+        @SuppressWarnings("unchecked")
+        List<String> roleNames = (List<String>) requestData.get("roleNames");
+
         userService.update(id, user, password, roleNames);
         return ResponseEntity.ok(user);
     }

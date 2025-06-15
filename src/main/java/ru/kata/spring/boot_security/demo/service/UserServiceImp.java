@@ -39,16 +39,23 @@ public class UserServiceImp implements UserService {
 
     @Override
     @Transactional
-    public void addUser(User user) {
-        String oldPass = userRepository.findPasswordByEmail(user.getEmail());
-        String newPass = Objects.equals(oldPass, user.getPassword()) ?
-                oldPass : passwordEncoder.encode(user.getPassword());
-        user.setPassword(newPass);
-        if (user.getRoles().isEmpty()) {
-            Set<Role> userRoles = new HashSet<>();
-            userRoles.add(roleService.findRoleByName(Role.defaultRoleName));
-            user.setRoles(userRoles);
+    public void addUser(User user, List<String> roleNames) {
+        // Проверка пароля
+        if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
+            throw new IllegalArgumentException("Password cannot be empty");
         }
+
+        // Установка ролей
+        if (roleNames != null && !roleNames.isEmpty()) {
+            user.setRoles(roleService.getRolesSetByUserName(roleNames));
+        } else {
+            Set<Role> defaultRoles = new HashSet<>();
+            defaultRoles.add(roleService.findRoleByName(Role.defaultRoleName));
+            user.setRoles(defaultRoles);
+        }
+
+        // Кодирование пароля
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
 
@@ -72,25 +79,30 @@ public class UserServiceImp implements UserService {
 
     @Override
     public void update(Long id, User user, String password, List<String> roleNames) {
-        User u = userRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
-        if (u.getName() != null) {
-            u.setName(user.getName());
-        }
-        if (u.getAge() != null) {
-            u.setAge(user.getAge());
-        }
-        if (u.getEmail() != null) {
-            u.setEmail(user.getEmail());
-        }
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
+
+        // Обновление полей
+        if (user.getName() != null) {
+            existingUser.setName(user.getName());
+        }
+        if (user.getAge() != null) {
+            existingUser.setAge(user.getAge());
+        }
+        if (user.getEmail() != null) {
+            existingUser.setEmail(user.getEmail());
+        }
+
+        // Обновление пароля
         if (password != null && !password.isEmpty()) {
             existingUser.setPassword(passwordEncoder.encode(password));
         }
+
+        // Обновление ролей
         if (roleNames != null) {
-            u.setRoles(roleService.getRolesSetByUserName(roleNames));
+            existingUser.setRoles(roleService.getRolesSetByUserName(roleNames));
         }
-        userRepository.save(u);
+
+        userRepository.save(existingUser);
     }
 }

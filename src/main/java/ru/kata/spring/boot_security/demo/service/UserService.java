@@ -12,7 +12,7 @@ public interface UserService extends UserDetailsService {
 
     User getUserById(Long id);
 
-    void addUser(User user);
+    void addUser(User user, List<String> roleNames);
 
     void deleteUser(Long id);
 

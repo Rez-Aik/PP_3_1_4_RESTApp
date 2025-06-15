@@ -463,12 +463,15 @@
         e.preventDefault();
 
         const formData = new FormData(e.target);
+        const selectedRoles = Array.from(document.getElementById('roles').selectedOptions)
+            .map(option => option.value);
+
         const userData = {
             name: formData.get('name'),
             email: formData.get('email'),
             age: formData.get('age'),
             password: formData.get('password'),
-            roleNames: formData.getAll('roleNames')
+            roleNames: selectedRoles
         };
 
         try {
@@ -478,14 +481,17 @@
                 body: JSON.stringify(userData)
             });
 
-            if (!response.ok) throw new Error('Failed to create user');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to create user');
+            }
 
             e.target.reset();
             await loadUsers();
             showAlert('User created successfully!', 'success');
         } catch (error) {
             console.error('Error creating user:', error);
-            showAlert('Failed to create user', 'danger');
+            showAlert(error.message || 'Failed to create user', 'danger');
         }
     }
 
@@ -525,12 +531,15 @@
 
         const formData = new FormData(e.target);
         const userId = formData.get('id');
+        const selectedRoles = Array.from(document.getElementById('editRolesSelect').selectedOptions)
+            .map(option => option.value);
+
         const userData = {
             name: formData.get('name'),
             email: formData.get('email'),
             age: formData.get('age'),
             password: formData.get('password'),
-            roleNames: formData.getAll('roleNames')
+            roleNames: selectedRoles
         };
 
         try {
@@ -540,14 +549,17 @@
                 body: JSON.stringify(userData)
             });
 
-            if (!response.ok) throw new Error('Failed to update user');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to update user');
+            }
 
             await loadUsers();
             bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
             showAlert('User updated successfully!', 'success');
         } catch (error) {
             console.error('Error updating user:', error);
-            showAlert('Failed to update user', 'danger');
+            showAlert(error.message || 'Failed to update user', 'danger');
         }
     }
 
