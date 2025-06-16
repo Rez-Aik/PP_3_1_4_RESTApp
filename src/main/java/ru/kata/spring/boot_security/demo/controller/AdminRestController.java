@@ -75,17 +75,21 @@ public class AdminRestController {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
-        User user = new User();
-        user.setName((String) requestData.get("name"));
-        user.setEmail((String) requestData.get("email"));
-        user.setAge(requestData.get("age") != null ? Integer.parseInt(requestData.get("age").toString()) : null);
-        String password = (String) requestData.get("password");
 
+        @SuppressWarnings("unchecked")
+        Map<String, Object> userMap = (Map<String, Object>) requestData.get("updatedUser");
+        String newPassword = (String) requestData.get("newPassword");
         @SuppressWarnings("unchecked")
         List<String> roleNames = (List<String>) requestData.get("roleNames");
 
-        userService.update(id, user, password, roleNames);
-        return ResponseEntity.ok(user);
+        User updatedUser = new User();
+        updatedUser.setName((String) userMap.get("name"));
+        updatedUser.setEmail((String) userMap.get("email"));
+        updatedUser.setAge(userMap.get("age") != null ? Integer.parseInt(userMap.get("age").toString()) : null);
+
+        userService.update(id, updatedUser, newPassword, roleNames);
+
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @DeleteMapping("/{id}")

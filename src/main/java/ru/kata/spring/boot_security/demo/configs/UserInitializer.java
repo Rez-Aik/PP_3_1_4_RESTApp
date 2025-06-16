@@ -8,6 +8,7 @@ import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Component
@@ -33,18 +34,14 @@ public class UserInitializer {
 
                 User admin = new User("admin", 12, "admin@admin.com");
                 admin.setPassword("admin");
-                Set<Role> adminRoles = new HashSet<>();
-                adminRoles.add(roleAdmin);
-                admin.setRoles(adminRoles);
+                admin.setRoles(Set.of(roleAdmin));
 
                 User user = new User("test_user", 20, "test@test.com");
                 user.setPassword("user");
-                Set<Role> userRoles = new HashSet<>();
-                userRoles.add(roleUser);
-                user.setRoles(userRoles);
+                user.setRoles(Set.of(roleUser));
 
-//                userService.addUser(admin);
-//                userService.addUser(user);
+                userService.addUser(admin, List.of("ADMIN"));
+                userService.addUser(user, List.of("USER"));
             }
         } catch (Exception e) {
             e.printStackTrace();

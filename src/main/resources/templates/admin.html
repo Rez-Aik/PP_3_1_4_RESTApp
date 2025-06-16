@@ -529,24 +529,29 @@
     async function handleEditUser(e) {
         e.preventDefault();
 
-        const formData = new FormData(e.target);
-        const userId = formData.get('id');
-        const selectedRoles = Array.from(document.getElementById('editRolesSelect').selectedOptions)
+        const formData = e.target;
+        const userId = formData.id.value;
+        const password = formData.password.value;
+        const selectedRoles = Array.from(formData.roleNames.selectedOptions)
             .map(option => option.value);
 
         const userData = {
-            name: formData.get('name'),
-            email: formData.get('email'),
-            age: formData.get('age'),
-            password: formData.get('password'),
-            roleNames: selectedRoles
+            id: userId,
+            name: formData.name.value,
+            email: formData.email.value,
+            age: formData.age.value,
         };
 
         try {
             const response = await fetch(`/api/admin/${userId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(userData)
+                body: JSON.stringify({
+                    updatedUser: userData,
+                    newPassword: password || null, //null если пароль не изменен
+                    roleNames: selectedRoles
+                    }
+                )
             });
 
             if (!response.ok) {

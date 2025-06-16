@@ -78,31 +78,25 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public void update(Long id, User user, String password, List<String> roleNames) {
+    @Transactional
+    public void update(Long id, User updatedUser, String newPassword, List<String> roleNames) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
 
-        // Обновление полей
-        if (user.getName() != null) {
-            existingUser.setName(user.getName());
-        }
-        if (user.getAge() != null) {
-            existingUser.setAge(user.getAge());
-        }
-        if (user.getEmail() != null) {
-            existingUser.setEmail(user.getEmail());
+        // Обновляем пароль, если новый
+        if (newPassword != null && !newPassword.isEmpty()) {
+            updatedUser.setPassword(passwordEncoder.encode(newPassword));
+        } else {
+            updatedUser.setPassword(existingUser.getPassword());
         }
 
-        // Обновление пароля
-        if (password != null && !password.isEmpty()) {
-            existingUser.setPassword(passwordEncoder.encode(password));
+        // Обновляем роли, если новые
+        if (roleNames != null && !roleNames.isEmpty()) {
+            updatedUser.setRoles(roleService.getRolesSetByUserName(roleNames));
+        } else {
+            updatedUser.setRoles(existingUser.getRoles());
         }
-
-        // Обновление ролей
-        if (roleNames != null) {
-            existingUser.setRoles(roleService.getRolesSetByUserName(roleNames));
-        }
-
-        userRepository.save(existingUser);
+        updatedUser.setId(id);
+        userRepository.save(updatedUser);
     }
 }
