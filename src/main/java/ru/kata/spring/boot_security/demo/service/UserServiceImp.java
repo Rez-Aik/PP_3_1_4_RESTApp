@@ -16,12 +16,10 @@ public class UserServiceImp implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final RoleService roleService;
 
-    public UserServiceImp(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleService roleService) {
+    public UserServiceImp(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.roleService = roleService;
     }
 
     @Override
@@ -39,19 +37,10 @@ public class UserServiceImp implements UserService {
 
     @Override
     @Transactional
-    public void addUser(User user, List<String> roleNames) {
+    public void addUser(User user) {
         // Проверка пароля
         if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
             throw new IllegalArgumentException("Password cannot be empty");
-        }
-
-        // Установка ролей
-        if (roleNames != null && !roleNames.isEmpty()) {
-            user.setRoles(roleService.getRolesSetByUserName(roleNames));
-        } else {
-            Set<Role> defaultRoles = new HashSet<>();
-            defaultRoles.add(roleService.findRoleByName(Role.defaultRoleName));
-            user.setRoles(defaultRoles);
         }
 
         // Кодирование пароля
@@ -79,7 +68,7 @@ public class UserServiceImp implements UserService {
 
     @Override
     @Transactional
-    public void update(Long id, User updatedUser, String newPassword, List<String> roleNames) {
+    public void update(Long id, User updatedUser, String newPassword) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
 
@@ -90,12 +79,6 @@ public class UserServiceImp implements UserService {
             updatedUser.setPassword(existingUser.getPassword());
         }
 
-        // Обновляем роли, если новые
-        if (roleNames != null && !roleNames.isEmpty()) {
-            updatedUser.setRoles(roleService.getRolesSetByUserName(roleNames));
-        } else {
-            updatedUser.setRoles(existingUser.getRoles());
-        }
         updatedUser.setId(id);
         userRepository.save(updatedUser);
     }

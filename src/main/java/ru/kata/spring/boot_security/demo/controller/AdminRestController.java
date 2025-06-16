@@ -12,6 +12,8 @@ import ru.kata.spring.boot_security.demo.service.UserService;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -40,7 +42,8 @@ public class AdminRestController {
     }
 
     @PostMapping
-    public ResponseEntity<User> addUser(@Valid @RequestBody Map<String, Object> requestData, BindingResult bindingResult) {
+    public ResponseEntity<User> addUser(@Valid @RequestBody Map<String, Object> requestData,
+                                        BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().build();
         }
@@ -54,9 +57,13 @@ public class AdminRestController {
         @SuppressWarnings("unchecked")
         List<String> roleNames = (List<String>) requestData.get("roleNames");
 
-        userService.addUser(user, roleNames);
+        Set<Role> roles = processRoles(roleNames);
+        user.setRoles(roles);
+
+        userService.addUser(user); // Теперь UserService не зависит от RoleService для обработки ролей
         return ResponseEntity.ok(user);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
@@ -87,9 +94,22 @@ public class AdminRestController {
         updatedUser.setEmail((String) userMap.get("email"));
         updatedUser.setAge(userMap.get("age") != null ? Integer.parseInt(userMap.get("age").toString()) : null);
 
-        userService.update(id, updatedUser, newPassword, roleNames);
+        Set<Role> roles = processRoles(roleNames);
+        updatedUser.setRoles(roles);
+
+        userService.update(id, updatedUser, newPassword); // Теперь UserService не зависит от RoleService для обработки ролей
 
         return ResponseEntity.ok(userService.getUserById(id));
+    }
+
+    private Set<Role> processRoles(List<String> roleNames) {
+        if (roleNames != null && !roleNames.isEmpty()) {
+            return roleNames.stream()
+                    .map(roleService::findRoleByName)
+                    .collect(Collectors.toSet());
+        } else {
+            return Set.of(roleService.findRoleByName(Role.defaultRoleName));
+        }
     }
 
     @DeleteMapping("/{id}")

@@ -40,8 +40,8 @@ public class UserInitializer {
                 user.setPassword("user");
                 user.setRoles(Set.of(roleUser));
 
-                userService.addUser(admin, List.of("ADMIN"));
-                userService.addUser(user, List.of("USER"));
+                userService.addUser(admin);
+                userService.addUser(user);
             }
         } catch (Exception e) {
             e.printStackTrace();
