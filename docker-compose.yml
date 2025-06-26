@@ -1,11 +1,36 @@
 services:
-  my-web-app-db:
+  db:
     image: mysql:8.0
-    ports:
-      - 3307:3306
+    container_name: mysql-db
     environment:
-      - MYSQL_URL=db
-      - MYSQL_USER=rez
-      - MYSQL_PASSWORD=root
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=myDB
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: myDB
+      MYSQL_USER: rez
+      MYSQL_PASSWORD: root
+    ports:
+      - "3307:3306"
+#    volumes:
+#      - mysql_data:/var/lib/mysql
+#    healthcheck:
+#      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+#      interval: 5s
+#      timeout: 10s
+#      retries: 10
+
+  app:
+    build: .
+    container_name: spring-app
+    ports:
+      - "8080:8080"
+#    environment:
+#      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/myDB?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+#      SPRING_DATASOURCE_USERNAME: rez
+#      SPRING_DATASOURCE_PASSWORD: root
+#      SPRING_JPA_HIBERNATE_DDL-AUTO: update
+    depends_on:
+      - db
+#      db:
+#        condition: service_healthy
+
+#volumes:
+#  mysql_data:
